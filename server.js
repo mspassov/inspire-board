@@ -1,6 +1,11 @@
 const express = require('express');
+require('dotenv').config();
+const connectDB = require('./db');
 const ideasRouter = require('./routes/ideas');
-const port = 5000;
+const port = process.env.PORT || 5000;
+
+//Connect to Mongo database
+connectDB();
 
 const app = express();
 

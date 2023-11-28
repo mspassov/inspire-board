@@ -1,83 +1,75 @@
 const express = require('express');
+const IdeaModel = require('../models/Idea');
 const router = express.Router();
-var ideas = [
-    {
-        id: 1,
-        text: "Idea 1",
-        tag: "Tag 1",
-        username: "user1",
-        date: "2023-05-11"
-    },
-    {
-        id: 2,
-        text: "Idea 2",
-        tag: "Tag 2",
-        username: "user2",
-        date: "2023-05-11"
-    },
-    {
-        id: 3,
-        text: "Idea 3",
-        tag: "Tag 3",
-        username: "user3",
-        date: "2023-05-11"
-    },
-];
 
 //Get all ideas
-router.get('/', (req, res) => {
-    res.json({ success: true, data: ideas });
-})
+router.get('/', async (req, res) => {
+    const allIdeas = await IdeaModel.find();
+    try {
+        res.status(200).json({success: true, data: allIdeas});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: 'Problem retrieving the collection'});
+    }
+});
 
 //Post new idea
-router.post('/', (req, res) =>{
-    const newIdea = {
-        id: ideas.length + 1,
+router.post('/', async (req, res) =>{
+    const newIdea = new IdeaModel({
         text: req.body.text,
         tag: req.body.tag,
         username: req.body.username,
-        date: new Date().toISOString().slice(0, 10),
+    });
+
+    try {
+        const savedIdea = await newIdea.save();
+        res.status(200).json({success: true, data: savedIdea});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: "Could not save the new item"});
     }
-    ideas.push(newIdea);
-    res.status(200).json({success: true, data: newIdea});
 })
 
 //Update idea by id
-router.put('/:id', (req, res) => {
-    const target = ideas.find((idea) => idea.id == parseInt(req.params.id));
-
-    if(!target){
-        return res.status(404).json({success: false, data: "Idea not found"});
+router.put('/:id', async (req, res) => {
+    try {
+        const updatedIdea = await IdeaModel.findByIdAndUpdate(
+            req.params.id,
+            {
+                $set:{
+                    text: req.body.text,
+                    tag: req.body.tag
+                }
+            },
+            {new: true}
+        );
+        res.status(200).json({success: true, data: updatedIdea});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: "Could not update item with this id"});
     }
-
-    target.text = req.body.text || target.text;
-    target.tag = req.body.tag || target.tag;
-
-    res.status(200).json({success: true, data: target});
 })
 
 //Delete idea by id
-router.delete('/:id', (req, res) => {
-    const target = ideas.find((idea) => idea.id == parseInt(req.params.id));
-
-    if(!target){
-        return res.status(404).json({success: false, data: "Idea not found"});
+router.delete('/:id', async (req, res) => {
+    try {
+        const deletedIdea = await IdeaModel.findByIdAndDelete(req.params.id);
+        res.status(200).json({success: true, data: deletedIdea});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: "Could not delete item with this id"});
     }
-
-    ideas = ideas.filter((idea) => (idea.id != parseInt(req.params.id)));
-
-    res.status(200).json({success: true, data: target});
 })
 
 //Get idea by id
-router.get('/:id', (req, res) => {
-    const target = ideas.find((idea) => idea.id == parseInt(req.params.id));
-
-    if(!target){
-        return res.status(404).json({success: false, data: "Idea not found"});
+router.get('/:id', async (req, res) => {
+    try {
+        const currIdea = await IdeaModel.findById(req.params.id);
+        res.status(200).json({success: true, data: currIdea});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({success: false, error: "Could not find this idea"});
     }
-
-    res.status(200).json({success: true, data: target});
 })
 
 module.exports = router;
