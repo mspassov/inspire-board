@@ -33,17 +33,23 @@ router.post('/', async (req, res) =>{
 //Update idea by id
 router.put('/:id', async (req, res) => {
     try {
-        const updatedIdea = await IdeaModel.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set:{
-                    text: req.body.text,
-                    tag: req.body.tag
-                }
-            },
-            {new: true}
-        );
-        res.status(200).json({success: true, data: updatedIdea});
+        const idea = await IdeaModel.findById(req.params.id);
+        if(idea.username == req.body.username){
+            const updatedIdea = await IdeaModel.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $set:{
+                        text: req.body.text,
+                        tag: req.body.tag
+                    }
+                },
+                {new: true}
+            );
+            return res.status(200).json({success: true, data: updatedIdea});
+        }
+        
+        res.status(403).json({success: false, error: 'Unauthorized access to update this post'});
+
     } catch (error) {
         console.log(error);
         res.status(500).json({success: false, error: "Could not update item with this id"});
@@ -53,8 +59,14 @@ router.put('/:id', async (req, res) => {
 //Delete idea by id
 router.delete('/:id', async (req, res) => {
     try {
-        const deletedIdea = await IdeaModel.findByIdAndDelete(req.params.id);
-        res.status(200).json({success: true, data: deletedIdea});
+        const idea = await IdeaModel.findById(req.params.id);
+        if(idea.username == req.body.username){
+            const deletedIdea = await IdeaModel.findByIdAndDelete(req.params.id);
+            return res.status(200).json({success: true, data: deletedIdea});
+        }
+
+        res.status(403).json({success: false, error: 'Unauthorized access to delete this post'});
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({success: false, error: "Could not delete item with this id"});
