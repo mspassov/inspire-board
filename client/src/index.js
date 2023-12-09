@@ -1,5 +1,5 @@
 import './style.css';
-import '@fortawesome/fontawesome-free/css/all.css';
+//import '@fortawesome/fontawesome-free/css/all.css';
 import Modal from './components/Modal';
 import ModalForm from './components/ModalForm';
 import IdeaList from './components/IdeaList';
